@@ -41,7 +41,6 @@ def update():
         del all_procs[i]
 
 plt.ion()
-plt.ylabel("MB")
 while True:
     update()
     keys = list(dict(sorted(all_procs.items(), key=lambda item: item[-1][-1] or 0)).keys())[-10:]
@@ -60,7 +59,8 @@ while True:
     for k in keys:
         plt.plot(all_procs[k], label=k, marker=next(marker), linestyle=next(ls))
         plt.gcf().autofmt_xdate()
+    plt.ylabel("MB")
     plt.legend()
     plt.draw()
-    plt.pause(5)
+    plt.pause(15)
     plt.clf()

@@ -2,11 +2,16 @@ import matplotlib.pyplot as plt
 import itertools
 import os
 
+import psutil
+
 PAGE_SIZE = 4 * 1024
+
+join_list = ["firefox", "thunderbird", "slack", "emerge"]
 
 all_procs = {}
 def update():
     curr_proc = []
+    vals = {}
     for f in os.listdir("/proc"):
         if f.isnumeric():
             try:
@@ -21,8 +26,24 @@ def update():
                 if mem_mbytes < 100:
                     continue
 
+                ppid = psutil.Process(int(f)).ppid()
+                parent_name = psutil.Process(ppid).name()
+                if parent_name in join_list:
+                    k = parent_name[0:8] + "_" + str(ppid)
+                    if k in curr_proc:
+                        all_procs[k][-1] += mem_mbytes
+                    else:
+                        if k in vals:
+                            vals[k] += mem_mbytes
+                        else:
+                            vals[k] = mem_mbytes
+                    continue
+
                 p = "/proc/{}/comm".format(f)
                 comm = open(p, "r").read().strip()[0:8] + "_" + f
+
+                if comm in vals:
+                    mem_mbytes += vals[comm]
 
                 if comm not in all_procs:
                     all_procs[comm] = []
@@ -62,5 +83,6 @@ while True:
     plt.ylabel("MB")
     plt.legend()
     plt.draw()
-    plt.pause(15)
+    plt.pause(360)
+    #plt.pause(5)
     plt.clf()
